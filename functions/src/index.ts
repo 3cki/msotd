@@ -1,19 +1,28 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { scheduler } from "firebase-functions/v2";
+import { logger } from "firebase-functions/v2";
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+import { getURLFromEnvs, getHTMLFromURL, getShortcutsFromHTML } from "./web";
+import {
+  getShortcutsFromFirestore,
+  removeIdenticalShortcuts,
+  updateAndAddShortcuts,
+} from "./firestore";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.readShortcuts = scheduler.onSchedule(
+  "every day at 00:00",
+  async (context) => {
+    try {
+      const url = getURLFromEnvs();
+      const html = await getHTMLFromURL(url);
+      const shortcuts = getShortcutsFromHTML(html);
+      const storedShortcuts = await getShortcutsFromFirestore();
+      const filteredShortcuts = removeIdenticalShortcuts(
+        shortcuts,
+        storedShortcuts
+      );
+      await updateAndAddShortcuts(filteredShortcuts);
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+);
