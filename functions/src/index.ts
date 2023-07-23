@@ -1,4 +1,4 @@
-import { scheduler } from "firebase-functions/v2";
+import { pubsub } from "firebase-functions";
 import { logger } from "firebase-functions/v2";
 
 import { getURLFromEnvs, getHTMLFromURL, getShortcutsFromHTML } from "./web";
@@ -8,7 +8,7 @@ import {
   updateAndAddShortcuts,
 } from "./firestore";
 
-exports.readShortcuts = scheduler.onSchedule("* * * * *", async (context) => {
+exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
   try {
     const url = getURLFromEnvs();
     const html = await getHTMLFromURL(url);

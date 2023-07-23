@@ -16,13 +16,12 @@ export const getHTMLFromURL = async (url: string): Promise<string> => {
 
 export const getShortcutsFromHTML = (html: string): string[] => {
   const regex = /<li><strong>(.+)<\/strong>":&nbsp;(.+)<\/li>/g;
-  const shortcuts: string[] = [];
-
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(html)) !== null) {
-    shortcuts.push(`${match[1]}: ${match[2]}`);
+  let matches = Array.from(html.matchAll(regex));
+  let result = [];
+  for (let match of matches) {
+    result.push(match[1]); // This is the first group in the regex
+    result.push(match[2]); // This is the second group in the regex
   }
-
-  logger.info(`Shortcuts: ${shortcuts}`);
-  return shortcuts;
+  logger.info(`Shortcuts: ${result}`);
+  return result;
 };
