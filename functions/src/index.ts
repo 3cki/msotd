@@ -5,7 +5,8 @@ import { getURLFromEnvs, getHTMLFromURL, getShortcutsFromHTML } from "./web";
 import {
   getShortcutsFromFirestore,
   removeIdenticalShortcuts,
-  updateAndAddShortcuts,
+  addNewShortcuts,
+  updateShortcuts,
 } from "./firestore";
 
 exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
@@ -14,11 +15,12 @@ exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
     const html = await getHTMLFromURL(url);
     const shortcuts = getShortcutsFromHTML(html);
     const storedShortcuts = await getShortcutsFromFirestore();
-    const filteredShortcuts = removeIdenticalShortcuts(
+    const { newShortcuts, updatedShortcuts } = removeIdenticalShortcuts(
       shortcuts,
       storedShortcuts
     );
-    await updateAndAddShortcuts(filteredShortcuts);
+    await addNewShortcuts(newShortcuts);
+    await updateShortcuts(updatedShortcuts);
   } catch (error) {
     logger.error(error);
   }

@@ -1,5 +1,7 @@
 import axios from "axios";
+import { parse } from "node-html-parser";
 import { logger } from "firebase-functions/v2";
+import ShortcutInterface from "./interfaces/shortcut";
 
 export const getURLFromEnvs = (): string => {
   const url = process.env.URL;
@@ -14,14 +16,23 @@ export const getHTMLFromURL = async (url: string): Promise<string> => {
   return data;
 };
 
-export const getShortcutsFromHTML = (html: string): string[] => {
-  const regex = /<li><strong>(.+)<\/strong>":&nbsp;(.+)<\/li>/g;
-  let matches = Array.from(html.matchAll(regex));
-  let result = [];
-  for (let match of matches) {
-    result.push(match[1]); // This is the first group in the regex
-    result.push(match[2]); // This is the second group in the regex
-  }
-  logger.info(`Shortcuts: ${result}`);
-  return result;
+export const getShortcutsFromHTML = (html: string): ShortcutInterface[] => {
+  const doc = parse(html);
+  const elements = doc.querySelectorAll("li strong");
+
+  const shortcuts: ShortcutInterface[] = [];
+  elements.forEach((element) => {
+    const parent = element.parentNode;
+    if (!parent) return;
+
+    const shortcut: ShortcutInterface = {
+      shortcut: element.text,
+      description: parent.text,
+      added: new Date(),
+    };
+    shortcuts.push(shortcut);
+  });
+
+  logger.info(`Shortcuts: ${shortcuts}`);
+  return shortcuts;
 };
