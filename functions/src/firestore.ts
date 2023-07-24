@@ -11,8 +11,12 @@ export const getShortcutsFromFirestore = async (): Promise<
   ShortcutInterface[]
 > => {
   const snapshot = await firestore.collection("shortcuts").get();
-  const shortcuts = snapshot.docs.map((doc) => doc.data().shortcut);
-  logger.info(`Shortcuts: ${shortcuts}`);
+  const shortcuts: ShortcutInterface[] = [];
+  snapshot.forEach((doc) => {
+    const shortcut = doc.data() as ShortcutInterface;
+    shortcuts.push(shortcut);
+  });
+  logger.info(`Stored Shortcuts: ${shortcuts}`);
   return shortcuts;
 };
 
@@ -23,11 +27,10 @@ export const removeIdenticalShortcuts = (
   newShortcuts: ShortcutInterface[];
   updatedShortcuts: ShortcutInterface[];
 } => {
-  const newShortcuts = shortcuts.filter(
-    (shortcut) =>
-      !storedShortcuts.some(
-        (storedShortcut) => storedShortcut.shortcut === shortcut.shortcut
-      )
+  const newShortcuts = shortcuts.filter((shortcut) =>
+    storedShortcuts.every(
+      (storedShortcut) => storedShortcut.shortcut !== shortcut.shortcut
+    )
   );
 
   const updatedShortcuts = shortcuts.filter((shortcut) =>
@@ -49,9 +52,9 @@ export const addNewShortcuts = async (shortcuts: ShortcutInterface[]) => {
   shortcuts.forEach((shortcut) => {
     const docRef = firestore.collection("shortcuts").doc();
     batch.set(docRef, shortcut);
+    logger.info(`Added Shortcut: ${shortcut.shortcut}`);
   });
   await batch.commit();
-  logger.info(`Added Shortcuts: ${shortcuts}`);
 };
 
 export const updateShortcuts = async (shortcuts: ShortcutInterface[]) => {
@@ -60,7 +63,7 @@ export const updateShortcuts = async (shortcuts: ShortcutInterface[]) => {
     shortcut.updated = new Date();
     const docRef = firestore.collection("shortcuts").doc();
     batch.set(docRef, shortcut);
+    logger.info(`Updated Shortcut: ${shortcut.shortcut}`);
   });
   await batch.commit();
-  logger.info(`Updated Shortcuts: ${shortcuts}`);
 };

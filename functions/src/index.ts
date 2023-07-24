@@ -20,7 +20,7 @@ exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
       storedShortcuts
     );
     await addNewShortcuts(newShortcuts);
-    await updateShortcuts(updatedShortcuts);
+    //await updateShortcuts(updatedShortcuts);
   } catch (error) {
     logger.error(error);
   }
