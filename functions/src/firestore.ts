@@ -16,7 +16,7 @@ export const getShortcutsFromFirestore = async (): Promise<
     const shortcut = doc.data() as ShortcutInterface;
     shortcuts.push(shortcut);
   });
-  logger.info(`Stored Shortcuts: ${shortcuts}`);
+  logger.info(`Read ${shortcuts.length} Shortcuts from Firestore`);
   return shortcuts;
 };
 
@@ -41,8 +41,8 @@ export const removeIdenticalShortcuts = (
     )
   );
 
-  logger.info(`New Shortcuts: ${newShortcuts}`);
-  logger.info(`Updated Shortcuts: ${updatedShortcuts}`);
+  logger.info(`${newShortcuts.length} New Shortcuts`);
+  logger.info(`${updatedShortcuts.length} Updated Shortcuts`);
 
   return { newShortcuts, updatedShortcuts };
 };
@@ -52,9 +52,9 @@ export const addNewShortcuts = async (shortcuts: ShortcutInterface[]) => {
   shortcuts.forEach((shortcut) => {
     const docRef = firestore.collection("shortcuts").doc();
     batch.set(docRef, shortcut);
-    logger.info(`Added Shortcut: ${shortcut.shortcut}`);
   });
   await batch.commit();
+  logger.info(`Added ${shortcuts.length} Shortcuts`);
 };
 
 export const updateShortcuts = async (shortcuts: ShortcutInterface[]) => {
@@ -63,7 +63,7 @@ export const updateShortcuts = async (shortcuts: ShortcutInterface[]) => {
     shortcut.updated = new Date();
     const docRef = firestore.collection("shortcuts").doc();
     batch.set(docRef, shortcut);
-    logger.info(`Updated Shortcut: ${shortcut.shortcut}`);
   });
   await batch.commit();
+  logger.info(`Updated ${shortcuts.length} Shortcuts`);
 };

@@ -33,6 +33,6 @@ export const getShortcutsFromHTML = (html: string): ShortcutInterface[] => {
     shortcuts.push(shortcut);
   });
 
-  logger.info(`Shortcuts: ${shortcuts}`);
+  logger.info(`Read ${shortcuts.length} Shortcuts from HTML`);
   return shortcuts;
 };

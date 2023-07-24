@@ -6,7 +6,6 @@ import {
   getShortcutsFromFirestore,
   removeIdenticalShortcuts,
   addNewShortcuts,
-  updateShortcuts,
 } from "./firestore";
 
 exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
@@ -15,7 +14,7 @@ exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
     const html = await getHTMLFromURL(url);
     const shortcuts = getShortcutsFromHTML(html);
     const storedShortcuts = await getShortcutsFromFirestore();
-    const { newShortcuts, updatedShortcuts } = removeIdenticalShortcuts(
+    const { newShortcuts } = removeIdenticalShortcuts(
       shortcuts,
       storedShortcuts
     );
