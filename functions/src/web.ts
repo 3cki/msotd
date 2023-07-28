@@ -2,6 +2,11 @@ import axios from "axios";
 import { parse } from "node-html-parser";
 import { logger } from "firebase-functions/v2";
 import ShortcutInterface from "./interfaces/shortcut";
+import {
+  removeDuplicateShortcuts,
+  constructShortcut,
+  getShortcutDetailsFromElement,
+} from "./shortcuts";
 
 export const getURLFromEnvs = (): string => {
   const url = process.env.URL;
@@ -22,24 +27,13 @@ export const getShortcutsFromHTML = (html: string): ShortcutInterface[] => {
 
   const shortcuts: ShortcutInterface[] = [];
   elements.forEach((element) => {
-    const parent = element.parentNode;
-    if (!parent) return;
-
-    const command = parent.text.split(":")[0].trim();
-    const description = parent.text.split(":")[1].trim();
-
-    const shortcut: ShortcutInterface = {
-      shortcut: command,
-      description,
-    };
+    const { command, description } = getShortcutDetailsFromElement(element);
+    const shortcut = constructShortcut(command, description);
     shortcuts.push(shortcut);
   });
 
-  const uniqueShortcuts = shortcuts.filter(
-    (shortcut, index, self) =>
-      index === self.findIndex((s) => s.shortcut === shortcut.shortcut)
-  );
-
+  const uniqueShortcuts = removeDuplicateShortcuts(shortcuts);
   logger.info(`Read ${uniqueShortcuts.length} Shortcuts from HTML`);
+
   return uniqueShortcuts;
 };
