@@ -12,8 +12,8 @@ exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
   try {
     const url = getURLFromEnvs();
     const html = await getHTMLFromURL(url);
-    const shortcuts = getShortcutsFromHTML(html);
     const storedShortcuts = await getShortcutsFromFirestore();
+    const shortcuts = getShortcutsFromHTML(html);
     const { newShortcuts } = removeIdenticalShortcuts(
       shortcuts,
       storedShortcuts

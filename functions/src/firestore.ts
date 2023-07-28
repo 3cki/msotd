@@ -50,6 +50,7 @@ export const removeIdenticalShortcuts = (
 export const addNewShortcuts = async (shortcuts: ShortcutInterface[]) => {
   const batch = firestore.batch();
   shortcuts.forEach((shortcut) => {
+    shortcut.added = new Date();
     const docRef = firestore.collection("shortcuts").doc();
     batch.set(docRef, shortcut);
   });
