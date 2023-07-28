@@ -1,19 +1,27 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { pubsub } from "firebase-functions";
+import { logger } from "firebase-functions/v2";
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+import { getURLFromEnvs, getHTMLFromURL, getShortcutsFromHTML } from "./web";
+import {
+  getShortcutsFromFirestore,
+  removeIdenticalShortcuts,
+  addNewShortcuts,
+  updateShortcuts,
+} from "./firestore";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.readShortcuts = pubsub.schedule("* * * * *").onRun(async (context) => {
+  try {
+    const url = getURLFromEnvs();
+    const html = await getHTMLFromURL(url);
+    const storedShortcuts = await getShortcutsFromFirestore();
+    const shortcuts = getShortcutsFromHTML(html);
+    const { newShortcuts, updatedShortcuts } = removeIdenticalShortcuts(
+      shortcuts,
+      storedShortcuts
+    );
+    await addNewShortcuts(newShortcuts);
+    await updateShortcuts(updatedShortcuts);
+  } catch (error) {
+    logger.error(error);
+  }
+});
