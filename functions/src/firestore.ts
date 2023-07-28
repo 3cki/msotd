@@ -14,6 +14,7 @@ export const getShortcutsFromFirestore = async (): Promise<
   const shortcuts: ShortcutInterface[] = [];
   snapshot.forEach((doc) => {
     const shortcut = doc.data() as ShortcutInterface;
+    shortcut.id = doc.id;
     shortcuts.push(shortcut);
   });
   logger.info(`Read ${shortcuts.length} Shortcuts from Firestore`);
@@ -41,6 +42,14 @@ export const removeIdenticalShortcuts = (
     )
   );
 
+  updatedShortcuts.forEach((updatedShortcut) => {
+    const storedShortcut = storedShortcuts.find(
+      (storedShortcut) => storedShortcut.shortcut === updatedShortcut.shortcut
+    );
+    if (!storedShortcut) return;
+    updatedShortcut.id = storedShortcut.id;
+  });
+
   logger.info(`${newShortcuts.length} New Shortcuts`);
   logger.info(`${updatedShortcuts.length} Updated Shortcuts`);
 
@@ -61,8 +70,10 @@ export const addNewShortcuts = async (shortcuts: ShortcutInterface[]) => {
 export const updateShortcuts = async (shortcuts: ShortcutInterface[]) => {
   const batch = firestore.batch();
   shortcuts.forEach((shortcut) => {
+    if (!shortcut.id) throw new Error("Shortcut ID not set");
+
     shortcut.updated = new Date();
-    const docRef = firestore.collection("shortcuts").doc();
+    const docRef = firestore.collection("shortcuts").doc(shortcut.id);
     batch.set(docRef, shortcut);
   });
   await batch.commit();

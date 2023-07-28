@@ -31,7 +31,6 @@ export const getShortcutsFromHTML = (html: string): ShortcutInterface[] => {
     const shortcut: ShortcutInterface = {
       shortcut: command,
       description,
-      added: new Date(),
     };
     shortcuts.push(shortcut);
   });
